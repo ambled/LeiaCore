@@ -1,0 +1,9 @@
+.idea
+.idea/*
+.DS_Store
+node_modules
+examples
+*.html
+assets
+*.orig.js
+
