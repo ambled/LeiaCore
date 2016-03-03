@@ -142,6 +142,25 @@ Your script block at the bottom of your HTML file should look exactly like this 
 
 **Note:** Its usually a good idea to build at least one THREE group in advance, to contain some or all of your visual objects to make it easier to move or otherwise manipulate them. Since we're only dealing with one visual object in this example, we can omit doing this for now. Don't worry, we'll show you how to make extensive use of groups in later examples.
 
+## Leia Keystroke Handler ##
+
+Adding the LeiaKeystroke handler adds many useful keyboard functions. Let's include it just after our scene declaration.
+
+    var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+
+The i, j, k, and l keys can now be used to adjust the perspective alignment. This alignment may be necessary if there is a break in the 3D effect.
+
+Your script block at the should look exactly like this at this point:
+
+  <script>
+      // Build The LeiaCore Objects
+      var leiaDisplayInfo = new LeiaDisplayInfo('https://www.leiainc.com/build/LeiaCore/config/displayPrototypeSmall.json');
+      var leiaHoloScreen  = new LeiaHoloScreen(leiaDisplayInfo);
+      var leiaRenderer    = new LeiaRenderer(leiaDisplayInfo, leiaHoloScreen);
+      var scene = new THREE.Scene();
+      var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+  </script>
+
 ## Connect LeiaRenderer To The Page ##
 
 Next we need to connect the LeiaRenderer to the page we are generating our new 3D scene on. In order to do this simply place this line of code directly beneath the ones we just wrote:
@@ -154,7 +173,7 @@ This wires the internal DOM element that LeiaRenderer uses for its output to the
 
 Now we need to actually build something to send to our new scene. Lets start with a single cube, and see what it takes to place it into our new basic scene.
 
-First we'll need to define what kind of geometry we'll be building a displayable 3d object for. THREE provides a whole assortment of prebuilt primitives for us to use to base any other more complex shape out of. For now lets just focus on rendering one though. In order to draw a cube, first we instantiate a THREE [BoxGeometry()](http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry) thusly:
+First we'll need to define what kind of geometry we'll be building a displayable 3D object for. THREE provides a whole assortment of prebuilt primitives for us to use to base any other more complex shape out of. For now lets just focus on rendering one though. In order to draw a cube, first we instantiate a THREE [BoxGeometry()](http://threejs.org/docs/#Reference/Extras.Geometries/BoxGeometry) thusly:
 
     var boxGeometry = new THREE.BoxGeometry(3, 3, 3);
 
@@ -186,7 +205,8 @@ At this point, the script block in our HTML should look identical to:
         var leiaHoloScreen  = new LeiaHoloScreen(leiaDisplayInfo);
         var leiaRenderer    = new LeiaRenderer(leiaDisplayInfo, leiaHoloScreen);
         var scene = new THREE.Scene();
-        
+        var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+
         // Connect LeiaRenderer To The Page
         document.body.appendChild(leiaRenderer.renderer.domElement);
         
@@ -212,7 +232,8 @@ At this point, the script block in our HTML should look identical to:
         var leiaHoloScreen  = new LeiaHoloScreen(leiaDisplayInfo);
         var leiaRenderer    = new LeiaRenderer(leiaDisplayInfo, leiaHoloScreen);
         var scene = new THREE.Scene();
-        
+        var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+
         // Connect LeiaRenderer To The Page
         document.body.appendChild(leiaRenderer.renderer.domElement);
         
@@ -241,7 +262,8 @@ At this point, the script block in our HTML should look identical to:
         var leiaHoloScreen  = new LeiaHoloScreen(leiaDisplayInfo);
         var leiaRenderer    = new LeiaRenderer(leiaDisplayInfo, leiaHoloScreen);
         var scene = new THREE.Scene();
-        
+        var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+
         // Connect LeiaRenderer To The Page
         document.body.appendChild(leiaRenderer.renderer.domElement);
         
@@ -280,7 +302,8 @@ The [complete HTML file](https://github.com/LeiaInc/LeiaSingleShape/blob/master/
                 var leiaHoloScreen  = new LeiaHoloScreen(leiaDisplayInfo);
                 var leiaRenderer    = new LeiaRenderer(leiaDisplayInfo, leiaHoloScreen);
                 var scene = new THREE.Scene();
-                
+                var lks = new LeiaKeystrokeHandler(scene, leiaHoloScreen, leiaRenderer, true);
+
                 // Connect LeiaRenderer To The Page
                 document.body.appendChild(leiaRenderer.renderer.domElement);
         
