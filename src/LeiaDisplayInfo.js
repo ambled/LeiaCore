@@ -1,6 +1,6 @@
 //LeiaCore Version
 'use strict';
-var REVISION = "0.1";
+var REVISION = "0.1.1";
 
 /**
  * LeiaDisplay
@@ -13,12 +13,12 @@ function LeiaDisplayInfo(url) {
     var self = this;
 
     function handler() {
-      if(this.status == 200){
-        var data = JSON.parse(this.responseText);
-        self.info = data.info;
-      } else {
-        throw new Error('LeiaCore: Cannot read file ', url);
-      }
+        if(this.status == 200){
+            var data = JSON.parse(this.responseText);
+            self.info = data.info;
+        } else {
+            throw new Error('LeiaCore: Cannot read file ', url);
+        }
     }
 
     if (url == undefined) {

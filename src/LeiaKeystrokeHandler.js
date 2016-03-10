@@ -35,6 +35,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
             B:66,
             INF:188,           // technically it's " , " but I like to think of it as " > " (same key) which looks like an fov , decrease fov
             SUP:190,           // technically it's " . " but I like to think of it as " > " , increases fov
+            SLASH:191,         // " / " used to switch between modes if defined.
             RIGHT_BRACKET:221, // " ] "  increase width
             LEFT_BRACKET:219}; // " [ "  decrease width
 
@@ -63,6 +64,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
         console.log("LeiaKeystrokeHandler: Initializing with LEIA reserved keys turned on.");
         this.addKeyHandler("a", function(){ // toggle between swizzle and tile mode
             leiaRenderer.toggleSwizzle();
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
         this.addKeyHandler("i", function(){ // move canvas by 1 pixel in y
             leiaRenderer.shiftY(1);
@@ -91,10 +93,12 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
         this.addKeyHandlerForCharCode(KEY.ONE, function(){ // toggle between basic and supersample4x mode.
             leiaHoloObject.setBaselineScaling(Math.max(0.001, Math.min(3.0, leiaHoloObject.getBaselineScaling() - 0.2)));
             leiaRenderer.updateShaderMaterial = true;
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
         this.addKeyHandlerForCharCode(KEY.TWO, function(){
             leiaHoloObject.setBaselineScaling(Math.max(0.001, Math.min(3.0, leiaHoloObject.getBaselineScaling() + 0.2)));
             leiaRenderer.updateShaderMaterial = true;
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
         // this.addKeyHandlerForCharCode(KEY.THREE, function(){ // toggle between basic and supersample4x mode.
         //     leiaRenderer.toggle2D3D();
@@ -103,10 +107,12 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
         this.addKeyHandlerForCharCode(KEY.THREE, function(){ // toggle between basic and supersample4x mode.
             leiaHoloObject.setDistanceExponent(Math.max(-1.0, Math.min(3.0, leiaHoloObject.getDistanceExponent() - 0.2)));
             leiaRenderer.updateShaderMaterial = true;
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
         this.addKeyHandlerForCharCode(KEY.FOUR, function(){ // toggle between basic and supersample4x mode.
             leiaHoloObject.setDistanceExponent(Math.max(-1.0, Math.min(3.0, leiaHoloObject.getDistanceExponent() + 0.2)));
             leiaRenderer.updateShaderMaterial = true;
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
         this.addKeyHandlerForCharCode(KEY.SUP, function(){ // increase fov
             var fov= leiaHoloObject._fov;
@@ -116,6 +122,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
             }
               leiaHoloObject.setFOV(fov);
               leiaRenderer.updateShaderMaterial = true;
+              leiaRenderer.render(threeScene, leiaHoloObject);
         });
 
         this.addKeyHandlerForCharCode(KEY.INF, function(){ // decrease fov
@@ -127,6 +134,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
 
               leiaHoloObject.setFOV(fov);
               leiaRenderer.updateShaderMaterial = true;
+              leiaRenderer.render(threeScene, leiaHoloObject);
         });
 
         this.addKeyHandlerForCharCode(KEY.RIGHT_BRACKET, function(){ // increase width
@@ -134,6 +142,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
           width += 1;
           leiaHoloObject.setWidth(width);
           leiaRenderer.updateShaderMaterial = true;
+          leiaRenderer.render(threeScene, leiaHoloObject);
 
         });
         this.addKeyHandlerForCharCode(KEY.LEFT_BRACKET, function(){ // decrease width
@@ -144,6 +153,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
           }
             leiaHoloObject.setWidth(width);
             leiaRenderer.updateShaderMaterial = true;
+            leiaRenderer.render(threeScene, leiaHoloObject);
         });
     }
 }

@@ -66,7 +66,7 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         this.setMultiViewMode(multiViewMode);
         leiaHoloObject.setMode(this.currentModeId);
         console.log('LeiaCore: Preparing shaders for render mode ['+this.leiaHoloObject.currentMode.modeId+'].');
-        this.textures = [];
+        this.textures    = [];
         var cm           = this.leiaHoloObject.currentMode;
         var mvp          = this.leiaHoloObject.multiViewParameters;
         var textureSizeX = cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
@@ -77,9 +77,9 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         }
         this.prepareShaderMaterial(this.leiaHoloObject)
         this.renderer.shadowMap.enabled = true;
-        this.updateTextureSettings     = false;
-        var backgroundPlaneTexture     = new THREE.ImageUtils.loadTexture(url);
-        backgroundPlaneTexture.wrapS   = backgroundPlaneTexture.wrapT = THREE.RepeatWrapping;
+        this.updateTextureSettings      = false;
+        var backgroundPlaneTexture      = new THREE.ImageUtils.loadTexture(url);
+        backgroundPlaneTexture.wrapS    = backgroundPlaneTexture.wrapT = THREE.RepeatWrapping;
         backgroundPlaneTexture.repeat.set(1, 1);
 
         var views           = this.leiaHoloObject.currentMode.numberOfTiles;
@@ -98,9 +98,9 @@ function LeiaRenderer(leiaHoloObject, parameters) {
     this.prepareTextures = function () {
         this.leiaHoloObject.setMode(this.currentModeId);
         console.log('LeiaCore: Preparing shaders for render mode ['+this.leiaHoloObject.currentMode.modeId+'].');
-        this.textures   = [];
-        var cm          = this.leiaHoloObject.currentMode;
-        var mvp         = this.leiaHoloObject.multiViewParameters;
+        this.textures    = [];
+        var cm           = this.leiaHoloObject.currentMode;
+        var mvp          = this.leiaHoloObject.multiViewParameters;
         var textureSizeX = cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
         var textureSizeY = cm.numberOfTilesOnTexture.y * mvp.tileResolution.y;
         for (var textureNumber = 0; textureNumber<cm.numberOfTextures; textureNumber++){
@@ -142,11 +142,11 @@ function LeiaRenderer(leiaHoloObject, parameters) {
                 textureSizeX = cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
                 textureSizeY = cm.numberOfTilesOnTexture.y * mvp.tileResolution.y;
                 break;
-            case "diamond":
+            case "diamondLandscape":
                 textureSizeX = 0.5*cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
                 textureSizeY = cm.numberOfTilesOnTexture.y * mvp.tileResolution.y;
                 break;
-            case "diamond2":
+            case "diamondPortrait":
                 textureSizeX = cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
                 textureSizeY = 0.5*cm.numberOfTilesOnTexture.y * mvp.tileResolution.y;
                 break;

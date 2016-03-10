@@ -7,114 +7,125 @@
  */
 function LeiaHoloView(leiaDisplay, parameters) {
     var lhv;
-    this.MULTIVIEW_MODES = { FLAT  : 'flat', TVH   : 'twoViewHorizontal', BASIC : 'basic', SS4X  : 'supersample4x'};
-    this.RENDER_MODES   = {TILES   : 1, SWIZZLE : 2};
+    this.RENDER_MODES           = {TILES : 1, SWIZZLE : 2};
 
     this.setDefaultConfig= function(){
-      var defaultLeiaDisplay = {
-        "info": {
-          "displayType"        : "square",
-          "canvasRotation"     : "0deg",
-          "physicalDimensions" : {"x":36.8, "y":36.8},
-          "displayResolution"  : {"x":1600, "y":1200},
-          "numberOfViews"      : {"x": 8, "y":8},
-          "deltaN"             : 0.1,
-          "maxDisparity"       : 5,
-          "emissionPatternR"   : [],
-          "emissionPatternG"   : [],
-          "emissionPatternB"   : []
+        var defaultLeiaDisplay = {
+            "info": {
+                "displayType"        : "square",
+                "canvasRotation"     : "0deg",
+                "physicalDimensions" : {"x":36.8, "y":36.8},
+                "displayResolution"  : {"x":1600, "y":1200},
+                "numberOfViews"      : {"x": 8, "y":8},
+                "maxDisparity"       : 5,
+                "emissionPatternR"   : [],
+                "emissionPatternG"   : [],
+                "emissionPatternB"   : [],
+                "deltaView"          : 0.1
+            }
         }
-      }
-      var nvx = defaultLeiaDisplay.info.numberOfViews.x;
-      var nvy = defaultLeiaDisplay.info.numberOfViews.y;
-      var nvxoffset = (nvx-1.0)/2.0;
-      var nvyoffset = (nvy-1.0)/2.0;
-      for (var j=0; j<nvy; j++){
-        for (var i=0; i<nvx; i++){
-          defaultLeiaDisplay.info.emissionPatternR.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaN ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaN});
-          defaultLeiaDisplay.info.emissionPatternG.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaN ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaN});
-          defaultLeiaDisplay.info.emissionPatternB.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaN ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaN});
+        var nvx = defaultLeiaDisplay.info.numberOfViews.x;
+        var nvy = defaultLeiaDisplay.info.numberOfViews.y;
+        var nvxoffset = (nvx-1.0)/2.0;
+        var nvyoffset = (nvy-1.0)/2.0;
+        for (var j=0; j<nvy; j++){
+            for (var i=0; i<nvx; i++){
+                defaultLeiaDisplay.info.emissionPatternR.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaView ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaView});
+                defaultLeiaDisplay.info.emissionPatternG.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaView ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaView});
+                defaultLeiaDisplay.info.emissionPatternB.push({"x":(i-nvxoffset)*defaultLeiaDisplay.info.deltaView ,"y":(j-nvyoffset)*defaultLeiaDisplay.info.deltaView});
+            }
         }
-      }
-      this.configHasChanged     = false;
-      this.defineNonPhysicalParameters();
-      this.setLeiaConfig(defaultLeiaDisplay);
+        this.configHasChanged = false;
+        this.defineNonPhysicalParameters();
+        this.setLeiaConfig(defaultLeiaDisplay);
     }
 
     this.setLeiaConfig= function(leiaDisplay){
-      this.modes                  = {};
-      this.multiViewParameters    = {};
-      this.mvp                    = this.multiViewParameters;
-      var info                    = leiaDisplay.info;
-      this.mvp.displayType        = info.displayType;
-      this.mvp.canvasRotation     = info.canvasRotation;
-      this.mvp.physicalDimensions = new THREE.Vector2(info.physicalDimensions.x, info.physicalDimensions.y);
-      this.mvp.displayResolution  = new THREE.Vector2(info.displayResolution.x, info.displayResolution.y);
-      this.mvp.aspectRatio        = info.displayResolution.x/info.displayResolution.y;
-      this.mvp.numberOfViews      = new THREE.Vector2(info.numberOfViews.x, info.numberOfViews.y);
-      var viewResX                = this.mvp.displayResolution.x / this.mvp.numberOfViews.x;
-      var viewResY                = this.mvp.displayResolution.y / this.mvp.numberOfViews.y;
-      this.mvp.viewResolution     = new THREE.Vector2(viewResX, viewResY);
-      switch (this.mvp.displayType){
-        case "square":
-          this.mvp.tileResolution = new THREE.Vector2(viewResX, viewResY);
-          break;
-        case "diamond":
-          this.mvp.tileResolution = new THREE.Vector2(2*viewResX, viewResY);
-          break;
-        case "diamond2":
-          this.mvp.tileResolution = new THREE.Vector2(viewResX, 2*viewResY);
-          break;
-        default:
-          console.err('FATAL ERROR: unknown display Type')
-      }
-      this._width                 = info.physicalDimensions.x;
-      this._height                = info.physicalDimensions.x/this.mvp.aspectRatio;
-      this.deltaN                 = info.deltaN;
-      this._maxDisparity          = info.maxDisparity;
-      this.emissionPatternG       = leiaDisplay.info.emissionPatternG;
-      this.configHasChanged       = true;
+        this.modes                  = {};
+        this.multiViewParameters    = {};
+        this.mvp                    = this.multiViewParameters;
+        var info                    = leiaDisplay.info;
+        this.mvp.displayType        = info.displayType;
+        switch (this.mvp.displayType){
+            case "square":
+            case "diamondLandscape":
+            case "diamondPortrait":
+                this.MULTIVIEW_MODES = { FLAT : 'flat', TVH : 'twoViewHorizontal', BASIC : 'basic', SS4X : 'supersample4x'};
+                break;
+            default:
+                this.MULTIVIEW_MODES = { BASIC : 'basic'};
+        }
+        this.mvp.canvasRotation     = info.canvasRotation;
+        this.mvp.physicalDimensions = new THREE.Vector2(info.physicalDimensions.x, info.physicalDimensions.y);
+        this.mvp.displayResolution  = new THREE.Vector2(info.displayResolution.x, info.displayResolution.y);
+        this.mvp.aspectRatio        = info.displayResolution.x/info.displayResolution.y;
+        this.mvp.numberOfViews      = new THREE.Vector2(info.numberOfViews.x, info.numberOfViews.y);
+        var viewResX                = this.mvp.displayResolution.x / this.mvp.numberOfViews.x;
+        var viewResY                = this.mvp.displayResolution.y / this.mvp.numberOfViews.y;
+        this.mvp.viewResolution     = new THREE.Vector2(viewResX, viewResY);
+        switch (this.mvp.displayType){
+            case "square":
+                this.mvp.tileResolution = new THREE.Vector2(viewResX, viewResY);
+                break;
+            case "diamondLandscape":
+                this.mvp.tileResolution = new THREE.Vector2(2*viewResX, viewResY);
+                break;
+            case "diamondPortrait":
+                this.mvp.tileResolution = new THREE.Vector2(viewResX, 2*viewResY);
+                break;
+            default:
+                console.err('FATAL ERROR: unknown display Type');
+        }
+        this._width                 = info.physicalDimensions.x;
+        this._height                = info.physicalDimensions.x/this.mvp.aspectRatio;
+        this.deltaView              = info.deltaView;
+        this._maxDisparity          = info.maxDisparity ;
+        this.emissionPatternG       = leiaDisplay.info.emissionPatternG;
+        this.configHasChanged       = true;
 
-      this.updateNonPhysicalParameters();
-      this.init()
+        this.updateNonPhysicalParameters();
+        this.init()
     }
 
     this.defineNonPhysicalParameters= function(){
-      this.version                = REVISION;
-      this.projectionMatrices     = [];
-      this._holoScreenCenter      = new THREE.Vector3(0, 0, 0);   // screen center location
-      this._normal                = new THREE.Vector3(0, 0, 1);   // screen normal: unit vector pointing from the screen center to the camera array center
-      this._up                    = new THREE.Vector3(0, 1, 0);   // positive vertical direction of the screen: y axis
-      this.cameraShift            = new THREE.Vector2(0, 0);      // shift of the camera block with respect to its center
-      this._baselineScaling       =    1.0;                       // stretch factor of the camera array
-      this._distanceExponent      =    1.0;                       // stretch factor of the camera array
-      this.currentMode            =   null;                       // needs to be set by renderer
-      this.updateNonPhysicalParameters();
+        this.version                = REVISION;
+        this.projectionMatrices     = [];
+        this._holoScreenCenter      = new THREE.Vector3(0, 0, 0);   // screen center location
+        this._normal                = new THREE.Vector3(0, 0, 1);   // screen normal: unit vector pointing from the screen center to the camera array center
+        this._up                    = new THREE.Vector3(0, 1, 0);   // positive vertical direction of the screen: y axis
+        this.cameraShift            = new THREE.Vector2(0, 0);      // shift of the camera block with respect to its center
+        this._baselineScaling       =    1.0;                       // stretch factor of the camera array
+        this._distanceExponent      =    1.0;                       // stretch factor of the camera array
+        this.currentMode            =   null;                       // needs to be set by renderer
+        this.updateNonPhysicalParameters();
     }
 
-    this.updateNonPhysicalParameters = function() {					//     XXX XXX XXX     THIS IS THE ONE WE ARE USING     XXX XXX XXX
-      this._ScreenCameraDistance  = this._width*Math.exp(this._distanceExponent * Math.log(10.0));
-      this._fov                   = 2*Math.atan(this._width/(2*this._ScreenCameraDistance));
-      this._cameraCenterPosition  = new THREE.Vector3(0,0,this._ScreenCameraDistance);
-      this._baseline              = this._baselineScaling*this.deltaN*this._ScreenCameraDistance;
-      this._nearPlane             = this._maxDisparity*this._ScreenCameraDistance/(this._baseline+this._maxDisparity);      // math formula
-      this._farPlane              = ( (this._maxDisparity>=this._baseline)? -20000 :-(this._maxDisparity*this._ScreenCameraDistance/(this._baseline-this._maxDisparity))); // math formula
-      this._matricesNeedUpdate    =   true;                      // matrices will be generated upon first render
-      lhv=this;
-   	 // console.log(this._width, this._distanceExponent, this._ScreenCameraDistance, this._fov, this._baseline)
-   	 // console.lhvog(this._baselineScaling,this.deltaN,this._ScreenCameraDistance, this._nearPlane, this._farPlane)
+    this.updateNonPhysicalParameters = function() {
+        this._ScreenCameraDistance  = this._width*Math.exp(this._distanceExponent * Math.log(10.0));
+        this._fov                   = 2*Math.atan(this._width/(2*this._ScreenCameraDistance));
+        this._cameraCenterPosition  = new THREE.Vector3(0,0,this._ScreenCameraDistance);
+        this._baseline              = this._baselineScaling*this.deltaView*this._ScreenCameraDistance;
+        this._nearPlane             = this._maxDisparity*this._ScreenCameraDistance/(this._baseline+this._maxDisparity);
+        this._farPlane              = ( (this._maxDisparity>=this._baseline)? -20000 :-(this._maxDisparity*this._ScreenCameraDistance/(this._baseline-this._maxDisparity)));
+        this._matricesNeedUpdate    =   true;                      // matrices will be generated upon first render
+        lhv = this;
+     	  // console.log(this._width, this._distanceExponent, this._ScreenCameraDistance, this._fov, this._baseline)
+     	  // console.lhvog(this._baselineScaling,this.deltaView,this._ScreenCameraDistance, this._nearPlane, this._farPlane)
     }
 
     function multiViewMode(parameters) {
         this.modeId                 = null;     // name/identifier of the current mode
+        this.deltaView              = null;     // difference between adjacent views
         this.viewDirections         = null;     // emission Pattern of this mode (typically the green channel specified in the display configuration file.)
         this.matrix                 = null;     // blurring/sharpening kernel
         this.matrixTileStep         = null;     // view spacing when applying the kernel: 0.5 means supersampled grid, 1 means normal grid.
         this.numberOfTiles          = null;     // number of tiles that are rendered in this mode
         this.numberOfTilesOnTexture = null;     // number of tiles that are rendered on each texture
         this.numberOfTextures       = null;     // number of textures necessary to render all tiles.
+        this.DEBUG_FRAGMENTSHADER   = false;
 
         this.initFlatCamera  = function( parameters) {
+            this.deltaView              =   0.0;
             this.numberOfTiles          =   new THREE.Vector2(1, 1);
             this.numberOfTilesOnTexture =   this.numberOfTiles;
             this.numberOfTextures       =       1;
@@ -124,6 +135,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         };
 
         this.initBasicCamera = function(parameters) {
+            this.deltaView              =   lhv.deltaView;
             this.numberOfTiles          = lhv.multiViewParameters.numberOfViews;
             this.numberOfTilesOnTexture = this.numberOfTiles;
             this.numberOfTextures       =       1;
@@ -277,8 +289,8 @@ function LeiaHoloView(leiaDisplay, parameters) {
             var fragmentShader = "";
             switch (lhv.multiViewParameters.displayType) {
                 case "square"  :
-                case "diamond" :
-                case "diamond2" :
+                case "diamondLandscape" :
+                case "diamondPortrait" :
                     fragmentShader = this.composeStandardFragmentShader(renderMode);
                     break;
                 default:
@@ -314,10 +326,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
             fragmentShader     += "uniform sampler2D tTexture0;\n";
             fragmentShader     += "vec2 pixelCoord, sPixId, viewId;\n";
             switch (displayType){
-              case "diamond":
-              case "diamond2":
-                fragmentShader += "float parityId;\n";
-                break;
+                case "diamondLandscape" :
+                case "diamondPortrait" :
+                    fragmentShader += "float parityId;\n";
+                    break;
             }
             fragmentShader     += "void idPixel() {\n" ;
             fragmentShader     += "  pixelCoord = vec2(";
@@ -336,20 +348,20 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 fragmentShader += "  sPixId = vec2(floor(pixelCoord.s/"+mvp.numberOfViews.x.toFixed(1)+"),floor(pixelCoord.t/"+mvp.numberOfViews.y.toFixed(1)+") );\n";
                 fragmentShader += "  viewId = vec2(mod(pixelCoord.s,"+mvp.numberOfViews.x.toFixed(1)+"),mod(pixelCoord.t,"+mvp.numberOfViews.y.toFixed(1)+") );\n";
                 switch (displayType) {
-                	case "diamond":
-	                    fragmentShader += "  parityId = mod(sPixId.t, 2.0);\n";
-	                    fragmentShader += "  if (parityId == 0.0) {\n";
-	                    fragmentShader += "    sPixId = vec2( floor(max(0.0, max(0.0, (pixelCoord.s-"+(mvp.numberOfViews.x/2.0).toFixed(1)+")))/"+mvp.numberOfViews.x.toFixed(1)+"), floor(pixelCoord.t/"+mvp.numberOfViews.y.toFixed(1)+") );\n";
-                      fragmentShader += "    viewId = vec2(   mod(max(0.0, max(0.0, (pixelCoord.s-"+(mvp.numberOfViews.x/2.0).toFixed(1)+"))),"+mvp.numberOfViews.x.toFixed(1)+"),   mod(pixelCoord.t,"+mvp.numberOfViews.y.toFixed(1)+") );\n";
-	                    fragmentShader += "  }\n";
-    	                break;
-                    case "diamond2":
-	                    fragmentShader += "  parityId = mod(sPixId.s, 2.0);\n";
-	                    fragmentShader += "  if (parityId == 0.0) {\n";
-	                    fragmentShader += "    sPixId = vec2( floor(pixelCoord.s/"+mvp.numberOfViews.x.toFixed(1)+"), floor(max(0.0, max(0.0, (pixelCoord.t-"+(mvp.numberOfViews.y/2.0).toFixed(1)+")))/"+mvp.numberOfViews.y.toFixed(1)+") );\n";
-	                    fragmentShader += "    viewId = vec2(   mod(pixelCoord.s,"+mvp.numberOfViews.x.toFixed(1)+"),   mod(max(0.0, max(0.0, (pixelCoord.t-"+(mvp.numberOfViews.y/2.0).toFixed(1)+"))),"+mvp.numberOfViews.y.toFixed(1)+") );\n";
-	                    fragmentShader += "  }\n";
-        	            break;
+                    case "diamondLandscape":
+                        fragmentShader += "  parityId = 1.0 - mod(sPixId.t, 2.0);\n";
+                        fragmentShader += "  if (parityId == 1.0) {\n";
+                        fragmentShader += "    sPixId = vec2( floor(max(0.0, max(0.0, (pixelCoord.s-"+(mvp.numberOfViews.x/2.0).toFixed(1)+")))/"+mvp.numberOfViews.x.toFixed(1)+"), floor(pixelCoord.t/"+mvp.numberOfViews.y.toFixed(1)+") );\n";
+                        fragmentShader += "    viewId = vec2(   mod(max(0.0, max(0.0, (pixelCoord.s-"+(mvp.numberOfViews.x/2.0).toFixed(1)+"))),"+mvp.numberOfViews.x.toFixed(1)+"),   mod(pixelCoord.t,"+mvp.numberOfViews.y.toFixed(1)+") );\n";
+                        fragmentShader += "  }\n";
+                        break;
+                    case "diamondPortrait":
+                        fragmentShader += "  parityId = mod(sPixId.s, 2.0);\n";
+                        fragmentShader += "  if (parityId == 1.0) {\n";
+                        fragmentShader += "    sPixId = vec2( floor(pixelCoord.s/"+mvp.numberOfViews.x.toFixed(1)+"), floor(max(0.0, max(0.0, (pixelCoord.t-"+(mvp.numberOfViews.y/2.0).toFixed(1)+")))/"+mvp.numberOfViews.y.toFixed(1)+") );\n";
+                        fragmentShader += "    viewId = vec2(   mod(pixelCoord.s,"+mvp.numberOfViews.x.toFixed(1)+"),   mod(max(0.0, max(0.0, (pixelCoord.t-"+(mvp.numberOfViews.y/2.0).toFixed(1)+"))),"+mvp.numberOfViews.y.toFixed(1)+") );\n";
+                        fragmentShader += "  }\n";
+                        break;
                 }
             } else {
                 fragmentShader += "  sPixId = vec2(mod(pixelCoord.s,"+mvp.viewResolution.x.toFixed(1)+"),mod(pixelCoord.t, "+mvp.viewResolution.y.toFixed(1)+") );\n";
@@ -358,10 +370,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
             fragmentShader     +=  "}\n";
             fragmentShader     +=  "vec4 getPixel( in vec2 view, in vec2 sPix";
             switch (displayType){
-              case "diamond":
-              case "diamond2":
-                fragmentShader += ", in float parity";
-                break;
+                case "diamondLandscape" :
+                case "diamondPortrait" :
+                    fragmentShader += ", in float parity";
+                    break;
             }
             fragmentShader     +=  ") {\n";
 
@@ -385,7 +397,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                     var maxId = new THREE.Vector2(this.numberOfTiles.x-1, this.numberOfTiles.y-1);
                     fragmentShader +=  "  vec2 viewPos = vec2(1.0, 1.0) + 2.0*view;\n";
                     fragmentShader +=  "  viewPos = vec2( min("+maxId.x.toFixed(1)+", max(0.0, viewPos.s)), min("+maxId.y.toFixed(1)+", max(0.0, viewPos.t)) );\n";
-                    // fragmentShader +=  "  viewPos = vec2( viewPos.s, viewPos.t );\n";
                     break;
                 default:
                     throw new Error('Error: fragment shader not implemented for mode ['+this.modeId+']. Initializing flat shader');
@@ -393,8 +404,8 @@ function LeiaHoloView(leiaDisplay, parameters) {
             }
 
             var fraction = {
-                 x : 1.0/(mvp.tileResolution.x * this.numberOfTiles.x),
-                 y : 1.0/(mvp.tileResolution.y * this.numberOfTiles.y)
+                x : 1.0/(mvp.tileResolution.x * this.numberOfTiles.x),
+                y : 1.0/(mvp.tileResolution.y * this.numberOfTiles.y)
             };
             fragmentShader     += "  vec4 res = vec4(1.0, 0.0, 0.0, 1.0);\n";
             switch (displayType){
@@ -402,20 +413,20 @@ function LeiaHoloView(leiaDisplay, parameters) {
                     fragmentShader +=  "  vec2 id = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
                     fragmentShader +=  "  res = texture2D( tTexture0, id );\n";
                     break;
-                case "diamond":
+                case "diamondLandscape":
                     fragmentShader += "  vec2 idA = vec2( "+fraction.x.toFixed(8)+"*(2.0*sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
                     fragmentShader += "  vec2 idB;\n";
-                    fragmentShader += "  if (parity == 0.0) {\n";
+                    fragmentShader += "  if (parity == 1.0) {\n";
                     fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(2.0*sPix.s+0.5+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
                     fragmentShader += "  } else {\n";
                     fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(max(0.0, 2.0*sPix.s-0.5)+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
                     fragmentShader += "  }\n";
                     fragmentShader += "  res = 0.5 * ( texture2D( tTexture0, idA) + texture2D( tTexture0, idB) ); \n";
                     break;
-                case "diamond2":
+                case "diamondPortrait":
                     fragmentShader += "  vec2 idA = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(2.0*sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
                     fragmentShader += "  vec2 idB;\n";
-                    fragmentShader += "  if (parity == 0.0) {\n";
+                    fragmentShader += "  if (parity == 1.0) {\n";
                     fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(2.0*sPix.t+0.5+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
                     fragmentShader += "  } else {\n";
                     fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(max(0.0, 2.0*sPix.t-0.5)+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
@@ -425,6 +436,27 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 default:
                     console.log('Warning: display type in configuration file. Please use official LEIA configuration files only.');
 
+            }
+            if (this.DEBUG_FRAGMENTSHADER){
+                var coeffX = 0.13;
+                var coeffY = 0.09;
+                fragmentShader     += "  res = res + vec4("+coeffX.toFixed(2)+"*mod(sPix.s, 3.0), "+coeffY.toFixed(2)+"*mod(sPix.t,3.0), 0.0, 0.0); \n";
+                fragmentShader     += "  if ( sPix == vec2(0.0, 0.0) ) { res = vec4(0.0, 1.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(0.0, 1.0) ) { res = vec4(0.5, 0.5, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(1.0, 0.0) ) { res = vec4(0.0, 0.5, 0.5, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(1.0, 1.0) ) { res = vec4(1.0, 1.0, 0.0, 0.0); }\n";
+
+                fragmentShader     += "  if ( sPix == vec2(3.0, 3.0) ) { res = vec4(1.0, 0.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(3.0, 4.0) ) { res = vec4(1.0, 0.5, 0.5, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(3.0, 5.0) ) { res = vec4(0.6, 0.4, 0.0, 0.0); }\n";
+
+                fragmentShader     += "  if ( sPix == vec2(4.0, 3.0) ) { res = vec4(0.5, 0.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(4.0, 4.0) ) { res = vec4(1.0, 1.0, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(4.0, 5.0) ) { res = vec4(0.0, 0.4, 0.6, 0.0); }\n";
+
+                fragmentShader     += "  if ( sPix == vec2(5.0, 3.0) ) { res = vec4(0.5, 1.0, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(5.0, 4.0) ) { res = vec4(1.0, 0.2, 0.3, 0.0); }\n";
+                fragmentShader     += "  if ( sPix == vec2(5.0, 5.0) ) { res = vec4(0.0, 1.0, 1.0, 0.0); }\n";
             }
             fragmentShader     += "  return res;\n";
             fragmentShader     +=  "}\n";
@@ -461,10 +493,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
                             fragmentShader += "+"+m.toFixed(3)+"*getPixel(vec2(viewId.s"+viewShiftX+", viewId.t"+viewShiftY+"), sPixId";
                         }
                         switch (displayType){
-                        	case "diamond":
-                        	case "diamond2":
-	                            fragmentShader += ", parityId";
-                              break;
+                            case "diamondLandscape":
+                            case "diamondPortrait":
+                                fragmentShader += ", parityId";
+                                break;
                         }
                         fragmentShader += ")";
                     }
@@ -484,6 +516,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
             }
 
             this.viewDirections = [];
+            // switch (lhv.mvp.displayType){
+            //   case "square":
+            //   case "disp":
+
             this.modeId = parameters.modeId;
 
             switch (parameters.modeId) {
@@ -556,8 +592,8 @@ function LeiaHoloView(leiaDisplay, parameters) {
             for (var i = 0; i < nx; i++) {
                 var idx = nx*j + i;
                 var camPosition = {
-                      x: stretchFactor*this.currentMode.viewDirections[idx].x - camShiftX,
-                      y: stretchFactor*this.currentMode.viewDirections[idx].y - camShiftY
+                    x: stretchFactor*this.currentMode.viewDirections[idx].x - camShiftX,
+                    y: stretchFactor*this.currentMode.viewDirections[idx].y - camShiftY
                 };
                 var projectionMatrix = this.calculateProjectionMatrix(camPosition);
                 this.projectionMatrices.push(projectionMatrix);
@@ -567,17 +603,24 @@ function LeiaHoloView(leiaDisplay, parameters) {
     };
 
     this.setMode = function(mode) {
+        if (mode == undefined){
+            mode = lhv.MULTIVIEW_MODES.BASIC;
+        }
         this.currentMode = this.modes[mode];
         this._matricesNeedUpdate = true;
     };
 
 
     this.init = function(leiaDisplay, parameters) {
-            for (var mode in lhv.MULTIVIEW_MODES){
-                this.modes[lhv.MULTIVIEW_MODES[mode]] = new multiViewMode({ modeId: lhv.MULTIVIEW_MODES[mode]} );
-            }
+        for (var mode in lhv.MULTIVIEW_MODES){
+            this.modes[lhv.MULTIVIEW_MODES[mode]] = new multiViewMode({ modeId: lhv.MULTIVIEW_MODES[mode]} );
+        }
     };
-    this.setDefaultConfig();
-    this.init(leiaDisplay, parameters);
 
+    if (leiaDisplay == undefined) {
+        this.setDefaultConfig();
+    } else {
+        this.setLeiaConfig(leiaDisplay);
+    }
+    this.init(leiaDisplay, parameters);
 }
