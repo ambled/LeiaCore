@@ -1,8 +1,9 @@
-//==============================================================================
-
-//======================The HoloScreen Object ==================================
-
-
+/**
+ * LeiaHoloScreen
+ *
+ * Leia 3D screen, derived from LeiaHoloView.
+ * 
+ */
 function LeiaHoloScreen(leiaDisplayInfo){
     this._position              = new THREE.Vector3(0,0,0);
 
@@ -104,3 +105,4 @@ function LeiaHoloScreen(leiaDisplayInfo){
    
 }
 LeiaHoloScreen.prototype = new LeiaHoloView();
+

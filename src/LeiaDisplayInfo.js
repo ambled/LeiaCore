@@ -1,15 +1,11 @@
-//LeiaCore Version
-'use strict';
-var REVISION = "0.1.1";
-
 /**
- * LeiaDisplay
- *
- * @param url
- * @constructor
+ * LeiaDisplayInfo
+ * 
+ * Contains physical parameters of current Leia 3D screen.
+ * 
  */
 function LeiaDisplayInfo(url) {
-    this.version = REVISION;
+    this.version = VERSION;
     var self = this;
 
     function handler() {
@@ -19,7 +15,7 @@ function LeiaDisplayInfo(url) {
         } else {
             throw new Error('LeiaCore: Cannot read file ', url);
         }
-    }
+    };
 
     if (url == undefined) {
         throw new Error('LeiaCore: must define configuration file when initializing LeiaDisplay().')
@@ -30,3 +26,4 @@ function LeiaDisplayInfo(url) {
         client.send();
     }
 }
+

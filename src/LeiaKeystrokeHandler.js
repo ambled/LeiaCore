@@ -1,4 +1,6 @@
 /**
+ * LeiaKeystokeHandler
+ *
  * Example usage:
  *
  * var lks = new LeiaKeystrokeHandler(threeScene, leiaHoloScreen, leiaRenderer, useReservedKeys);
@@ -6,7 +8,6 @@
  *     console.log(event.keyCode + " was pressed");
  * });
  *
- * @constructor
  */
 function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReservedKeys) {
     var KEY = {
@@ -50,7 +51,6 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
 
     this.addKeyHandler = function(key, handlerFunction) {
         var keyCode = key.toUpperCase().charCodeAt(0);
-        // console.log(key, keyCode)
         keyHandlers[keyCode] = handlerFunction;
     };
 
@@ -157,3 +157,4 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
         });
     }
 }
+

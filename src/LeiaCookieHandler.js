@@ -9,7 +9,6 @@
  * LeiaCookieHandler.hasItem(key)
  * LeiaCookieHandler.keys()
  *
- * @constructor
  */
 var LeiaCookieHandler = {
     SHIFTX: "LeiaShiftX",
@@ -62,3 +61,4 @@ if( !LeiaCookieHandler.hasItem(LeiaCookieHandler.SHIFTX) ) {
 if( !LeiaCookieHandler.hasItem(LeiaCookieHandler.SHIFTY) ) {
     LeiaCookieHandler.setItem(LeiaCookieHandler.SHIFTY, 0);
 }
+

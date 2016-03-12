@@ -1,15 +1,22 @@
-//LeiaCore Version
+/**
+ * LeiaHeader
+ * 
+ * Contains and displays version identifier of current LeiaCore.
+ *
+ */
 'use strict';
-var REVISION = "0.1.1";
+var VERSION = "0.2.20160312.010201";
+console.log("Using LeiaCore version " + VERSION);
+var LEIA_startTime = Date.now() * 0.001;
 
 /**
- * LeiaDisplay
- *
- * @param url
- * @constructor
+ * LeiaDisplayInfo
+ * 
+ * Contains physical parameters of current Leia 3D screen.
+ * 
  */
 function LeiaDisplayInfo(url) {
-    this.version = REVISION;
+    this.version = VERSION;
     var self = this;
 
     function handler() {
@@ -19,7 +26,7 @@ function LeiaDisplayInfo(url) {
         } else {
             throw new Error('LeiaCore: Cannot read file ', url);
         }
-    }
+    };
 
     if (url == undefined) {
         throw new Error('LeiaCore: must define configuration file when initializing LeiaDisplay().')
@@ -30,12 +37,12 @@ function LeiaDisplayInfo(url) {
         client.send();
     }
 }
+
 /**
- * LeiaHoloScreen
+ * LeiaHoloView
+ * 
+ * Base class containing the logic for multi-view rendering and displaying.
  *
- * @param leiaDisplay
- * @param parameters
- * @constructor
  */
 function LeiaHoloView(leiaDisplay, parameters) {
     var lhv;
@@ -70,7 +77,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this.configHasChanged = false;
         this.defineNonPhysicalParameters();
         this.setLeiaConfig(defaultLeiaDisplay);
-    }
+    };
 
     this.setLeiaConfig= function(leiaDisplay){
         this.modes                  = {};
@@ -117,10 +124,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
 
         this.updateNonPhysicalParameters();
         this.init()
-    }
+    };
 
     this.defineNonPhysicalParameters= function(){
-        this.version                = REVISION;
+        this.version                = VERSION;
         this.projectionMatrices     = [];
         this._holoScreenCenter      = new THREE.Vector3(0, 0, 0);   // screen center location
         this._normal                = new THREE.Vector3(0, 0, 1);   // screen normal: unit vector pointing from the screen center to the camera array center
@@ -130,7 +137,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this._distanceExponent      =    1.0;                       // stretch factor of the camera array
         this.currentMode            =   null;                       // needs to be set by renderer
         this.updateNonPhysicalParameters();
-    }
+    };
 
     this.updateNonPhysicalParameters = function() {
         this._ScreenCameraDistance  = this._width*Math.exp(this._distanceExponent * Math.log(10.0));
@@ -141,9 +148,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this._farPlane              = ( (this._maxDisparity>=this._baseline)? -20000 :-(this._maxDisparity*this._ScreenCameraDistance/(this._baseline-this._maxDisparity)));
         this._matricesNeedUpdate    =   true;                      // matrices will be generated upon first render
         lhv = this;
-     	  // console.log(this._width, this._distanceExponent, this._ScreenCameraDistance, this._fov, this._baseline)
-     	  // console.lhvog(this._baselineScaling,this.deltaView,this._ScreenCameraDistance, this._nearPlane, this._farPlane)
-    }
+    };
 
     function multiViewMode(parameters) {
         this.modeId                 = null;     // name/identifier of the current mode
@@ -467,7 +472,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                     break;
                 default:
                     console.log('Warning: display type in configuration file. Please use official LEIA configuration files only.');
-
             }
             if (this.DEBUG_FRAGMENTSHADER){
                 var coeffX = 0.13;
@@ -537,21 +541,14 @@ function LeiaHoloView(leiaDisplay, parameters) {
             fragmentShader     += ";\n";
             fragmentShader     += "  gl_FragColor = pixelRGBA;\n";
             fragmentShader     += "}\n";
-            // console.log(fragmentShader)
             return fragmentShader;
         };
-
 
         this.init = function (parameters) {
             if (parameters === undefined) {
                 throw new Error('multiViewMode needs to be instantiated with parameters. Please see examples.')
             }
-
             this.viewDirections = [];
-            // switch (lhv.mvp.displayType){
-            //   case "square":
-            //   case "disp":
-
             this.modeId = parameters.modeId;
 
             switch (parameters.modeId) {
@@ -564,7 +561,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 case lhv.MULTIVIEW_MODES.SS2X   : this.initSS2XCamera(parameters);   break;
                 case lhv.MULTIVIEW_MODES.SS4X   : this.initSS4XCamera(parameters);   break;
             }
-
         };
 
         this.init(parameters);
@@ -572,7 +568,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
 
 
     this.checkUpdate = function() {
-
         if (this._matricesNeedUpdate){
             this.updateProjectionMatrices();
             this._matricesNeedUpdate = false;
@@ -631,7 +626,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 this.projectionMatrices.push(projectionMatrix);
             }
         }
-        this.isUpdated = true;   //not used
     };
 
     this.setMode = function(mode) {
@@ -656,11 +650,13 @@ function LeiaHoloView(leiaDisplay, parameters) {
     }
     this.init(leiaDisplay, parameters);
 }
-//==============================================================================
 
-//======================The HoloScreen Object ==================================
-
-
+/**
+ * LeiaHoloScreen
+ *
+ * Leia 3D screen, derived from LeiaHoloView.
+ * 
+ */
 function LeiaHoloScreen(leiaDisplayInfo){
     this._position              = new THREE.Vector3(0,0,0);
 
@@ -762,24 +758,18 @@ function LeiaHoloScreen(leiaDisplayInfo){
    
 }
 LeiaHoloScreen.prototype = new LeiaHoloView();
-//==============================================================================
-//==============================================================================
 
 /**
  * LeiaRenderer
- *
- * @param leiaDisplay
- * @param leiaHoloScreen
- * @param parameters
- * @constructor
+ * 
+ * Replaces default three.js rendering function and outputs the 3D image to the screen.
+ * 
  */
 function LeiaRenderer(leiaHoloObject, parameters) {
     this.setParameters= function(){
         this.leiaHoloObject        = leiaHoloObject;
-        // If we witch back to holoObject.position.set etc we should updateVectors each time the holoObject is called
-        // console.log(this.leiaHoloObject.mvp);
         this.aspectRatio           = this.leiaHoloObject.mvp.aspectRatio;
-        this.version               = REVISION;
+        this.version               = VERSION;
         this.width                 = this.leiaHoloObject.mvp.displayResolution.x;
         this.height                = this.leiaHoloObject.mvp.displayResolution.y;
         this.canvasWidth           = null;
@@ -799,14 +789,13 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         this.orthoCamera           = new THREE.OrthographicCamera(this.width / -2, this.width / 2, this.height / 2, this.height / -2, -1, 1);
         this.cannedScene           = new THREE.Scene();
         this.emptyScene            = new THREE.Scene();
-        this.timer0                = Date.now() * 0.001;
-        this.timer1                = Date.now() * 0.001;
+        this.runningTimer          = Date.now() * 0.001;
         this.timer                 = 0;
         this.textures              = null;
         this.video                 = null;
         this.videotexture          = null;
         this.leiaHoloObject.configHasChanged=false;
-      }
+    };
 
     this.setMultiViewMode = function(multiViewMode){
         this.currentModeId          = multiViewMode;
@@ -882,12 +871,12 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         this.render(scene);
       }
       else{
-        this.timer1 = Date.now() * 0.001;
+        this.runningTimer = Date.now() * 0.001;
         if (!this.isAnimating) {
-            this.timer0 = this.timer1 - this.timer;
+            LEIA_startTime = this.runningTimer - this.timer;
         }
         if ((this.isAnimating) || (this.updateTextureSettings||this.updateShaderMaterial) ) {
-            this.timer = this.timer1 - this.timer0;
+            this.timer = this.runningTimer - LEIA_startTime;
             this.doRender(scene, this.leiaHoloObject);
         }
       }
@@ -951,7 +940,6 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         this.cannedScene.add(plane);
     };
 
-
     this.showVideo = function() {
         if ( this.video.readyState === this.video.HAVE_ENOUGH_DATA ) {
             //imageContext.drawImage( video, 0, 0 );
@@ -1000,7 +988,6 @@ function LeiaRenderer(leiaHoloObject, parameters) {
 
     this.renderTiles = function(scene, textures) {
         this.renderer.setClearColor(new THREE.Color().setRGB(0.0, 0.0, 0.0));
-
         var currentCamera       = this.camera;
         var numberOfTextures    = this.leiaHoloObject.currentMode.numberOfTextures;
         var tileResolution      = this.leiaHoloObject.multiViewParameters.tileResolution;
@@ -1079,21 +1066,17 @@ function LeiaRenderer(leiaHoloObject, parameters) {
 
     this.dataURLtoBlob = function(dataURL) {
         var byteString;
-
         // Convert base64/URLEncoded data component to raw binary data held in a string
         if (dataURL.split(',')[0].indexOf('base64') >= 0) {
             byteString = atob(dataURL.split(',')[1]);
         } else {
             byteString = unescape(dataURL.split(',')[1]);
         }
-
         var mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0]; // Separate out the mime component
         var ia = new Uint8Array(byteString.length); // Write the bytes of the string to a typed array
-
         for (var i = 0; i < byteString.length; i++) {
             ia[i] = byteString.charCodeAt(i);
         }
-
         return new Blob([ia], {type:mimeString});
     };
 
@@ -1181,80 +1164,77 @@ function LeiaRenderer(leiaHoloObject, parameters) {
     };
 
     this.shiftX = function(shiftX) {
-        this.canvasShift.x = (this.canvasShift.x + shiftX + this.canvasShift.nbrOfViewsX) % this.canvasShift.nbrOfViewsX;
+        var shiftMax = Math.max(this.canvasShift.nbrOfViewsX, this.canvasShift.nbrOfViewsY);
+        this.canvasShift.x = (this.canvasShift.x + shiftX + shiftMax) % shiftMax;
         this.setCanvasShift();
     };
 
     this.shiftY = function(shiftY) {
-        this.canvasShift.y = (this.canvasShift.y + shiftY + this.canvasShift.nbrOfViewsY) % this.canvasShift.nbrOfViewsY;
+        var shiftMax = Math.max(this.canvasShift.nbrOfViewsX, this.canvasShift.nbrOfViewsY);
+        this.canvasShift.y = (this.canvasShift.y + shiftY + shiftMax) % shiftMax;
         this.setCanvasShift();
     };
 
     this.setCanvasShift = function(){
-      var shiftX = this.canvasShift.x;
-      var shiftY = this.canvasShift.y;
-      this.shifterCookie.setItem('LeiaShiftX', shiftX);
-      this.shifterCookie.setItem('LeiaShiftY', shiftY);
-      var sX = 0;
-      var sY = 0;
-      var canRot = this.canvasRotation;
-      setTimeout( function() {
-          var canvas = document.getElementsByTagName("canvas");
-
-          switch (canRot) {
-              case "0deg":
-                  sX = shiftX;
-                  sY = shiftY;
-		          canvas[0].style.setProperty("transform", "translate("+sX.toFixed(2)+"px, "+sY.toFixed(2)+"px) ", null);
-                  break;
-              case "90deg":
-                  sX = shiftY;
-                  sY = 7-shiftX;
-		          canvas[0].style.setProperty("transform", "translate("+sX.toFixed(2)+"px, "+sY.toFixed(2)+"px) ", null);
-				  // var qx = shiftX - 560;
-				  // var qy = shiftY + 560;
-//				  canvas[0].style.setProperty("transform", "translate("+qx.toFixed(2)+"px, "+qy.toFixed(2)+"px) rotate(90deg)", null);
-//				  canvas[0].style.setProperty("transform", "translate("+qx.toFixed(2)+"px, "+qy.toFixed(2)+"px)", null);
-                  break;
-              default:
-                  console.log('Warning: wrong canvas rotation setting in configuration file. Please use official LEIA configuration files only.');
-          }
-      }, 0);
+        var shiftX = this.canvasShift.x;
+        var shiftY = this.canvasShift.y;
+        this.shifterCookie.setItem('LeiaShiftX_'+this.leiaHoloObject.mvp.displayType, shiftX);
+        this.shifterCookie.setItem('LeiaShiftY_'+this.leiaHoloObject.mvp.displayType, shiftY);
+        var sX = 0;
+        var sY = 0;
+        var canRot = this.canvasRotation;
+        setTimeout( function() {
+            var canvas = document.getElementsByTagName("canvas");
+            switch (canRot) {
+                case "0deg":
+                    sX = shiftX;
+                    sY = shiftY;
+    		        canvas[0].style.setProperty("transform", "translate("+sX.toFixed(2)+"px, "+sY.toFixed(2)+"px) ", null);
+                    break;
+                case "90deg":
+                    sX = shiftY;
+                    sY = shiftX;
+    		        canvas[0].style.setProperty("transform", "translate("+sX.toFixed(2)+"px, "+sY.toFixed(2)+"px) ", null);
+                    break;
+                default:
+                    console.log('Warning: wrong canvas rotation setting in configuration file. Please use official LEIA configuration files only.');
+            }
+        }, 0);
     };
 
     this.initWithoutRenderer= function(parameters){
-      var nViews          = this.leiaHoloObject.multiViewParameters.numberOfViews;
-      this.shifterCookie  = LeiaCookieHandler;
-      this.canvasShift    = {
-                              x           : this.shifterCookie.getItem('LeiaShiftX'),
-                              y           : this.shifterCookie.getItem('LeiaShiftY'),
-                              nbrOfViewsX : nViews.x,
-                              nbrOfViewsY : nViews.y
-                            };
-      this.setCanvasShift();
-      this.outputScene.add(this.outputMesh);
-      switch (this.leiaHoloObject.multiViewParameters.canvasRotation) {
-          case "0deg":
-              this.renderer.setSize(this.width, this.height);
-              this.canvasWidth  = this.width;
-              this.canvasHeight = this.height;
-              break;
-          case "90deg":
-              this.renderer.setSize(this.height, this.width);
-              this.canvasWidth  = this.height;
-              this.canvasHeight = this.width;
-              break;
-          default:
-              console.log('Warning: wrong canvas rotation setting in configuration file. Please use official LEIA configuration files only.');
-      }
+        var nViews          = this.leiaHoloObject.multiViewParameters.numberOfViews;
+        this.shifterCookie  = LeiaCookieHandler;
+        this.canvasShift    = {
+                                x           : this.shifterCookie.getItem('LeiaShiftX_'+this.leiaHoloObject.mvp.displayType),
+                                y           : this.shifterCookie.getItem('LeiaShiftY_'+this.leiaHoloObject.mvp.displayType),
+                                nbrOfViewsX : nViews.x,
+                                nbrOfViewsY : nViews.y
+                              };
+        this.setCanvasShift();
+        this.outputScene.add(this.outputMesh);
+        switch (this.leiaHoloObject.multiViewParameters.canvasRotation) {
+            case "0deg":
+                this.renderer.setSize(this.width, this.height);
+                this.canvasWidth  = this.width;
+                this.canvasHeight = this.height;
+                break;
+            case "90deg":
+                this.renderer.setSize(this.height, this.width);
+                this.canvasWidth  = this.height;
+                this.canvasHeight = this.width;
+                break;
+            default:
+                console.log('Warning: wrong canvas rotation setting in configuration file. Please use official LEIA configuration files only.');
+        }
     }
 
     this.init = function(parameters) {
         var nViews          = this.leiaHoloObject.multiViewParameters.numberOfViews;
         this.shifterCookie  = LeiaCookieHandler;
         this.canvasShift    = {
-                                x           : this.shifterCookie.getItem('LeiaShiftX'),
-                                y           : this.shifterCookie.getItem('LeiaShiftY'),
+                                x           : this.shifterCookie.getItem('LeiaShiftX_'+this.leiaHoloObject.mvp.displayType),
+                                y           : this.shifterCookie.getItem('LeiaShiftY_'+this.leiaHoloObject.mvp.displayType),
                                 nbrOfViewsX : nViews.x,
                                 nbrOfViewsY : nViews.y
                               };
@@ -1288,9 +1268,11 @@ function LeiaRenderer(leiaHoloObject, parameters) {
 
     this.setParameters();
     this.init(this.leiaHoloObject);
-
 }
+
 /**
+ * LeiaKeystokeHandler
+ *
  * Example usage:
  *
  * var lks = new LeiaKeystrokeHandler(threeScene, leiaHoloScreen, leiaRenderer, useReservedKeys);
@@ -1298,7 +1280,6 @@ function LeiaRenderer(leiaHoloObject, parameters) {
  *     console.log(event.keyCode + " was pressed");
  * });
  *
- * @constructor
  */
 function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReservedKeys) {
     var KEY = {
@@ -1342,7 +1323,6 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
 
     this.addKeyHandler = function(key, handlerFunction) {
         var keyCode = key.toUpperCase().charCodeAt(0);
-        // console.log(key, keyCode)
         keyHandlers[keyCode] = handlerFunction;
     };
 
@@ -1449,6 +1429,7 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
         });
     }
 }
+
 /**
  * LeiaCookieHandler
  *
@@ -1460,7 +1441,6 @@ function LeiaKeystrokeHandler(threeScene, leiaHoloObject, leiaRenderer, useReser
  * LeiaCookieHandler.hasItem(key)
  * LeiaCookieHandler.keys()
  *
- * @constructor
  */
 var LeiaCookieHandler = {
     SHIFTX: "LeiaShiftX",
@@ -1513,3 +1493,4 @@ if( !LeiaCookieHandler.hasItem(LeiaCookieHandler.SHIFTX) ) {
 if( !LeiaCookieHandler.hasItem(LeiaCookieHandler.SHIFTY) ) {
     LeiaCookieHandler.setItem(LeiaCookieHandler.SHIFTY, 0);
 }
+

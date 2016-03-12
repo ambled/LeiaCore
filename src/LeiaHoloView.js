@@ -1,9 +1,8 @@
 /**
- * LeiaHoloScreen
+ * LeiaHoloView
+ * 
+ * Base class containing the logic for multi-view rendering and displaying.
  *
- * @param leiaDisplay
- * @param parameters
- * @constructor
  */
 function LeiaHoloView(leiaDisplay, parameters) {
     var lhv;
@@ -38,7 +37,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this.configHasChanged = false;
         this.defineNonPhysicalParameters();
         this.setLeiaConfig(defaultLeiaDisplay);
-    }
+    };
 
     this.setLeiaConfig= function(leiaDisplay){
         this.modes                  = {};
@@ -85,10 +84,10 @@ function LeiaHoloView(leiaDisplay, parameters) {
 
         this.updateNonPhysicalParameters();
         this.init()
-    }
+    };
 
     this.defineNonPhysicalParameters= function(){
-        this.version                = REVISION;
+        this.version                = VERSION;
         this.projectionMatrices     = [];
         this._holoScreenCenter      = new THREE.Vector3(0, 0, 0);   // screen center location
         this._normal                = new THREE.Vector3(0, 0, 1);   // screen normal: unit vector pointing from the screen center to the camera array center
@@ -98,7 +97,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this._distanceExponent      =    1.0;                       // stretch factor of the camera array
         this.currentMode            =   null;                       // needs to be set by renderer
         this.updateNonPhysicalParameters();
-    }
+    };
 
     this.updateNonPhysicalParameters = function() {
         this._ScreenCameraDistance  = this._width*Math.exp(this._distanceExponent * Math.log(10.0));
@@ -109,9 +108,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
         this._farPlane              = ( (this._maxDisparity>=this._baseline)? -20000 :-(this._maxDisparity*this._ScreenCameraDistance/(this._baseline-this._maxDisparity)));
         this._matricesNeedUpdate    =   true;                      // matrices will be generated upon first render
         lhv = this;
-     	  // console.log(this._width, this._distanceExponent, this._ScreenCameraDistance, this._fov, this._baseline)
-     	  // console.lhvog(this._baselineScaling,this.deltaView,this._ScreenCameraDistance, this._nearPlane, this._farPlane)
-    }
+    };
 
     function multiViewMode(parameters) {
         this.modeId                 = null;     // name/identifier of the current mode
@@ -435,7 +432,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                     break;
                 default:
                     console.log('Warning: display type in configuration file. Please use official LEIA configuration files only.');
-
             }
             if (this.DEBUG_FRAGMENTSHADER){
                 var coeffX = 0.13;
@@ -505,21 +501,14 @@ function LeiaHoloView(leiaDisplay, parameters) {
             fragmentShader     += ";\n";
             fragmentShader     += "  gl_FragColor = pixelRGBA;\n";
             fragmentShader     += "}\n";
-            // console.log(fragmentShader)
             return fragmentShader;
         };
-
 
         this.init = function (parameters) {
             if (parameters === undefined) {
                 throw new Error('multiViewMode needs to be instantiated with parameters. Please see examples.')
             }
-
             this.viewDirections = [];
-            // switch (lhv.mvp.displayType){
-            //   case "square":
-            //   case "disp":
-
             this.modeId = parameters.modeId;
 
             switch (parameters.modeId) {
@@ -532,7 +521,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 case lhv.MULTIVIEW_MODES.SS2X   : this.initSS2XCamera(parameters);   break;
                 case lhv.MULTIVIEW_MODES.SS4X   : this.initSS4XCamera(parameters);   break;
             }
-
         };
 
         this.init(parameters);
@@ -540,7 +528,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
 
 
     this.checkUpdate = function() {
-
         if (this._matricesNeedUpdate){
             this.updateProjectionMatrices();
             this._matricesNeedUpdate = false;
@@ -599,7 +586,6 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 this.projectionMatrices.push(projectionMatrix);
             }
         }
-        this.isUpdated = true;   //not used
     };
 
     this.setMode = function(mode) {
@@ -624,3 +610,4 @@ function LeiaHoloView(leiaDisplay, parameters) {
     }
     this.init(leiaDisplay, parameters);
 }
+
