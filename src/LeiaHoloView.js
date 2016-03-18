@@ -73,7 +73,7 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 this.mvp.tileResolution = new THREE.Vector2(viewResX, 2*viewResY);
                 break;
             default:
-                console.err('FATAL ERROR: unknown display Type');
+                console.log('FATAL ERROR: unknown display Type');
         }
         this._width                 = info.physicalDimensions.x;
         this._height                = info.physicalDimensions.x/this.mvp.aspectRatio;
