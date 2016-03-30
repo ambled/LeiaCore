@@ -480,7 +480,7 @@ function LeiaRenderer(leiaHoloObject, parameters) {
         this.setCanvasShift();
         this.outputScene.add(this.outputMesh);
         this.renderer = new THREE.WebGLRenderer({
-            antialias:false,
+            antialias:true,
             preserveDrawingBuffer: true,
             devicePixelRatio: 1,
         });

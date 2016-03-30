@@ -5,7 +5,7 @@
  *
  */
 'use strict';
-var VERSION = "0.2.20160318.220915";
+var VERSION = "0.2.20160330.210747";
 console.log("Using LeiaCore version " + VERSION);
 var LEIA_startTime = Date.now() * 0.001;
 
