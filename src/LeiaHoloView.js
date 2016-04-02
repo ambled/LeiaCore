@@ -210,10 +210,23 @@ function LeiaHoloView(leiaDisplay, parameters) {
             this.numberOfTiles          = new THREE.Vector2(ntx, nty);
             this.numberOfTilesOnTexture = this.numberOfTiles;
             this.numberOfTextures       = 1;
-            var a =  0.7;
-            var b =  0.125;
-            var c = -0.05;
-            this.matrix                 = [[c, b, c], [b, a, b], [c, b, c]];
+            switch (lhv.mvp.displayType){
+                case "square":
+                    var a =  0.7;
+                    var b =  0.125;
+                    var c = -0.05;
+                    this.matrix                 = [[c, b, c], [b, a, b], [c, b, c]];
+                    break;
+                case "diamondLandscape":
+                case "diamondPortrait":
+                    var a =  0.4;
+                    var b =  0.2;
+                    var c = -0.05;
+                    this.matrix                 = [[c, b, c], [b, a, b], [c, b, c]];
+                    break;
+                default:
+                    console.log('FATAL ERROR: unknown display Type');
+            }
             this.matrixTileStep         = new THREE.Vector2(0.5, 0.5);
             var emissionPattern = lhv.emissionPatternG;
             for (var viewIdY=0; viewIdY<this.numberOfTiles.y; viewIdY++){
@@ -364,15 +377,17 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 fragmentShader += "  sPixId = vec2(mod(pixelCoord.s,"+mvp.viewResolution.x.toFixed(1)+"),mod(pixelCoord.t, "+mvp.viewResolution.y.toFixed(1)+") );\n";
                 fragmentShader += "  viewId = vec2(floor(pixelCoord.s/"+mvp.viewResolution.x.toFixed(1)+"),floor(pixelCoord.t/"+mvp.viewResolution.y.toFixed(1)+") );\n";
             }
-            fragmentShader     +=  "}\n";
-            fragmentShader     +=  "vec4 getPixel( in vec2 view, in vec2 sPix";
             switch (displayType){
                 case "diamondLandscape" :
+                    fragmentShader += "  sPixId = vec2(sPixId.s+0.5*parityId, sPixId.t);\n";
+                    break;
                 case "diamondPortrait" :
-                    fragmentShader += ", in float parity";
+                    fragmentShader += "  sPixId = vec2(sPixId.s, sPixId.t+0.5*parityId);\n";
                     break;
             }
-            fragmentShader     +=  ") {\n";
+            fragmentShader     +=  "}\n";
+            fragmentShader     +=  "vec4 getPixel( in vec2 view, in vec2 sPix )";
+            fragmentShader     +=  "{\n";
 
             switch(this.modeId) {
                 case lhv.MULTIVIEW_MODES.FLAT:
@@ -381,19 +396,18 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 case lhv.MULTIVIEW_MODES.TVH:
                     var center      =  mvp.numberOfViews.x/2;
                     fragmentShader +=  "  vec2 viewPos;\n";
-                    fragmentShader +=  "  if (viewId.s<"+center.toFixed(1)+") {\n";
+                    fragmentShader +=  "  if (view.s<"+center.toFixed(1)+") {\n";
                     fragmentShader +=  "    viewPos = vec2(0, 0);\n";
                     fragmentShader +=  "  } else {\n";
                     fragmentShader +=  "    viewPos = vec2(1, 0);\n";
                     fragmentShader +=  "  }\n";
                     break;
                 case lhv.MULTIVIEW_MODES.BASIC:
-                    fragmentShader +=  "  vec2 viewPos = viewId;\n";
+                    fragmentShader +=  "  vec2 viewPos = view;\n";
                     break;
                 case lhv.MULTIVIEW_MODES.SS4X:
                     var maxId = new THREE.Vector2(this.numberOfTiles.x-1, this.numberOfTiles.y-1);
                     fragmentShader +=  "  vec2 viewPos = vec2(1.0, 1.0) + 2.0*view;\n";
-                    fragmentShader +=  "  viewPos = vec2( min("+maxId.x.toFixed(1)+", max(0.0, viewPos.s)), min("+maxId.y.toFixed(1)+", max(0.0, viewPos.t)) );\n";
                     break;
                 default:
                     throw new Error('Error: fragment shader not implemented for mode ['+this.modeId+']. Initializing flat shader');
@@ -404,60 +418,30 @@ function LeiaHoloView(leiaDisplay, parameters) {
                 x : 1.0/(mvp.tileResolution.x * this.numberOfTiles.x),
                 y : 1.0/(mvp.tileResolution.y * this.numberOfTiles.y)
             };
-            fragmentShader     += "  vec4 res = vec4(1.0, 0.0, 0.0, 1.0);\n";
             switch (displayType){
-                case "square":
-                    fragmentShader +=  "  vec2 id = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
-                    fragmentShader +=  "  res = texture2D( tTexture0, id );\n";
-                    break;
                 case "diamondLandscape":
-                    fragmentShader += "  vec2 idA = vec2( "+fraction.x.toFixed(8)+"*(2.0*sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
-                    fragmentShader += "  vec2 idB;\n";
-                    fragmentShader += "  if (parity == 1.0) {\n";
-                    fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(2.0*sPix.s+0.5+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
-                    fragmentShader += "  } else {\n";
-                    fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(max(0.0, 2.0*sPix.s-0.5)+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
-                    fragmentShader += "  }\n";
-                    fragmentShader += "  res = 0.5 * ( texture2D( tTexture0, idA) + texture2D( tTexture0, idB) ); \n";
+                    fragmentShader +=  "  vec2 sPixPos = vec2(2.0*sPix.s, sPix.t);\n";
                     break;
                 case "diamondPortrait":
-                    fragmentShader += "  vec2 idA = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(2.0*sPix.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
-                    fragmentShader += "  vec2 idB;\n";
-                    fragmentShader += "  if (parity == 1.0) {\n";
-                    fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(2.0*sPix.t+0.5+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
-                    fragmentShader += "  } else {\n";
-                    fragmentShader += "    idB = vec2( "+fraction.x.toFixed(8)+"*(sPix.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5), "+fraction.y.toFixed(8)+"*(max(0.0, 2.0*sPix.t-0.5)+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5) );\n";
-                    fragmentShader += "  }\n";
-                    fragmentShader += "  res = 0.5 * ( texture2D( tTexture0, idA) + texture2D( tTexture0, idB) ); \n";
+                    fragmentShader +=  "  vec2 sPixPos = vec2(sPix.s, 2.0*sPix.t);\n";
                     break;
                 default:
-                    console.log('Warning: display type in configuration file. Please use official LEIA configuration files only.');
+                    fragmentShader +=  "  vec2 sPixPos = sPix;\n";
             }
-            if (this.DEBUG_FRAGMENTSHADER){
-                var coeffX = 0.13;
-                var coeffY = 0.09;
-                fragmentShader     += "  res = res + vec4("+coeffX.toFixed(2)+"*mod(sPix.s, 3.0), "+coeffY.toFixed(2)+"*mod(sPix.t,3.0), 0.0, 0.0); \n";
-                fragmentShader     += "  if ( sPix == vec2(0.0, 0.0) ) { res = vec4(0.0, 1.0, 1.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(0.0, 1.0) ) { res = vec4(0.5, 0.5, 0.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(1.0, 0.0) ) { res = vec4(0.0, 0.5, 0.5, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(1.0, 1.0) ) { res = vec4(1.0, 1.0, 0.0, 0.0); }\n";
-
-                fragmentShader     += "  if ( sPix == vec2(3.0, 3.0) ) { res = vec4(1.0, 0.0, 1.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(3.0, 4.0) ) { res = vec4(1.0, 0.5, 0.5, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(3.0, 5.0) ) { res = vec4(0.6, 0.4, 0.0, 0.0); }\n";
-
-                fragmentShader     += "  if ( sPix == vec2(4.0, 3.0) ) { res = vec4(0.5, 0.0, 1.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(4.0, 4.0) ) { res = vec4(1.0, 1.0, 0.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(4.0, 5.0) ) { res = vec4(0.0, 0.4, 0.6, 0.0); }\n";
-
-                fragmentShader     += "  if ( sPix == vec2(5.0, 3.0) ) { res = vec4(0.5, 1.0, 0.0, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(5.0, 4.0) ) { res = vec4(1.0, 0.2, 0.3, 0.0); }\n";
-                fragmentShader     += "  if ( sPix == vec2(5.0, 5.0) ) { res = vec4(0.0, 1.0, 1.0, 0.0); }\n";
+            fragmentShader +=  "  sPixPos = vec2( max(0.0, min("+(mvp.tileResolution.x-1.0).toFixed(1)+", sPixPos.s)), max(0.0, min("+(mvp.tileResolution.y-1.0).toFixed(1)+", sPixPos.t))  );\n";
+            fragmentShader +=  "  vec2 texUV = vec2( "+fraction.x.toFixed(8)+"*(sPixPos.s+viewPos.s*"+mvp.tileResolution.x.toFixed(1)+"+0.5) , "+fraction.y.toFixed(8)+"*(sPixPos.t+viewPos.t*"+mvp.tileResolution.y.toFixed(1)+"+0.5));\n";
+            fragmentShader +=  "  return texture2D( tTexture0, texUV );\n";
+            fragmentShader +=  "}\n";
+            switch (displayType){
+                case "diamondLandscape" :
+                case "diamondPortrait" :
+                    fragmentShader += "  vec4 getCompositePixel( in vec2 view, in vec2 sPix, in float parity) {\n";
+                    fragmentShader += "    return (0.5*getPixel(view, sPix) + 0.125*( getPixel(view, vec2(sPix.s-0.5, sPix.t)) + getPixel(view, vec2(sPix.s+0.5, sPix.t)) + getPixel(view, vec2(sPix.s, sPix.t-0.5)) + getPixel(view, vec2(sPix.s, sPix.t+0.5)) ) );\n";
+                    fragmentShader += "}\n";
+                    break;
             }
-            fragmentShader     += "  return res;\n";
-            fragmentShader     +=  "}\n";
-            fragmentShader     +=  "void main() {\n";
-            fragmentShader     +=  "  idPixel();\n";
+            fragmentShader +=  "void main() {\n";
+            fragmentShader +=  "  idPixel();\n";
 
             var shaderMatrix = this.matrix;
             var myMax = shaderMatrix.length;
@@ -483,22 +467,50 @@ function LeiaHoloView(leiaDisplay, parameters) {
                     if (Math.abs(vsx)>0) viewShiftX = ((vsx<0)?"":"+") + vsx.toFixed(2);
                     if (Math.abs(vsy)>0) viewShiftY = ((vsy<0)?"":"+") + vsy.toFixed(2);
                     if (Math.abs(m)>0){
-                        if ((vsx == 0)&&(vsy==0)) {
-                            fragmentShader += "+"+m.toFixed(3)+"*getPixel(viewId, sPixId";
-                        } else {
-                            fragmentShader += "+"+m.toFixed(3)+"*getPixel(vec2(viewId.s"+viewShiftX+", viewId.t"+viewShiftY+"), sPixId";
-                        }
+                        var mStr = ((m<0)?"":"+") + m.toFixed(3);
                         switch (displayType){
+                            case "square":
+                                if ((vsx == 0)&&(vsy==0)) {
+                                    fragmentShader += mStr+"*getPixel(viewId, sPixId)";
+                                } else {
+                                    fragmentShader += mStr+"*getPixel(vec2(viewId.s"+viewShiftX+", viewId.t"+viewShiftY+"), sPixId)";
+                                }
+                                break;
                             case "diamondLandscape":
                             case "diamondPortrait":
-                                fragmentShader += ", parityId";
+                                if ((vsx == 0)&&(vsy==0)) {
+                                    fragmentShader += mStr+"*getCompositePixel(viewId, sPixId, parityId)";
+                                } else {
+                                    fragmentShader += mStr+"*getCompositePixel(vec2(viewId.s"+viewShiftX+", viewId.t"+viewShiftY+"), sPixId, parityId)";
+                                }
                                 break;
                         }
-                        fragmentShader += ")";
                     }
                 }
             }
-            fragmentShader     += ";\n";
+            fragmentShader += ";\n";
+            if (this.DEBUG_FRAGMENTSHADER){
+                var coeffX = 0.13;
+                var coeffY = 0.09;
+                fragmentShader     += "  vec2 rPixId = vec2(floor(sPixId.s), floor(sPixId.t));\n";
+                fragmentShader     += "  pixelRGBA = pixelRGBA + vec4("+coeffX.toFixed(2)+"*mod(rPixId.s, 3.0), "+coeffY.toFixed(2)+"*mod(rPixId.t,3.0), 0.0, 0.0); \n";
+                fragmentShader     += "  if ( rPixId == vec2(0.0, 0.0) ) { pixelRGBA = vec4(0.0, 1.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(0.0, 1.0) ) { pixelRGBA = vec4(0.5, 0.5, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(1.0, 0.0) ) { pixelRGBA = vec4(0.0, 0.5, 0.5, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(1.0, 1.0) ) { pixelRGBA = vec4(1.0, 1.0, 0.0, 0.0); }\n";
+
+                fragmentShader     += "  if ( rPixId == vec2(3.0, 3.0) ) { pixelRGBA = vec4(1.0, 0.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(3.0, 4.0) ) { pixelRGBA = vec4(1.0, 0.5, 0.5, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(3.0, 5.0) ) { pixelRGBA = vec4(0.6, 0.4, 0.0, 0.0); }\n";
+
+                fragmentShader     += "  if ( rPixId == vec2(4.0, 3.0) ) { pixelRGBA = vec4(0.5, 0.0, 1.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(4.0, 4.0) ) { pixelRGBA = vec4(1.0, 1.0, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(4.0, 5.0) ) { pixelRGBA = vec4(0.0, 0.4, 0.6, 0.0); }\n";
+
+                fragmentShader     += "  if ( rPixId == vec2(5.0, 3.0) ) { pixelRGBA = vec4(0.5, 1.0, 0.0, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(5.0, 4.0) ) { pixelRGBA = vec4(1.0, 0.2, 0.3, 0.0); }\n";
+                fragmentShader     += "  if ( rPixId == vec2(5.0, 5.0) ) { pixelRGBA = vec4(0.0, 1.0, 1.0, 0.0); }\n";
+            }
             fragmentShader     += "  gl_FragColor = pixelRGBA;\n";
             fragmentShader     += "}\n";
             return fragmentShader;
