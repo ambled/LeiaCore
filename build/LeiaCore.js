@@ -5,7 +5,7 @@
  *
  */
 'use strict';
-var VERSION = "0.3.20160402.014811";
+var VERSION = "0.3.20160408.003007";
 console.log("Using LeiaCore version " + VERSION);
 var LEIA_startTime = Date.now() * 0.001;
 
@@ -940,7 +940,14 @@ function LeiaRenderer(leiaHoloObject, parameters) {
     this.prepareTextures = function () {
         this.leiaHoloObject.setMode(this.currentModeId);
         console.log('LeiaCore: Preparing shaders for render mode ['+this.leiaHoloObject.currentMode.modeId+'].');
+        // dispose of textures
+        if(this.textures) {
+            for(var i = 0; i < this.textures.length; i++) {
+                this.textures[i].dispose();
+            }
+        }
         this.textures    = [];
+
         var cm           = this.leiaHoloObject.currentMode;
         var mvp          = this.leiaHoloObject.multiViewParameters;
         var textureSizeX = cm.numberOfTilesOnTexture.x * mvp.tileResolution.x;
