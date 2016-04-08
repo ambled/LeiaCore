@@ -87,8 +87,8 @@ We will start with code that provides all of the necessary pieces to begin worki
         -webkit-transform : rotate(0deg);
     }
     </style>
-    <script src="https://www.leiainc.com/devkit/examples/js/three.js"></script>
-    <script src="https://www.leiainc.com/devkit/build/LeiaCore.js"></script>
+    <script src="https://www.leiainc.com/examples/js/three.js"></script>
+    <script src="https://www.leiainc.com/build/LeiaCore.js"></script>
 </head>
 <body></body>
 <script>
@@ -108,7 +108,7 @@ We will start with code that provides all of the necessary pieces to begin worki
 
     function init() {
         // Initialize Everything that LEIA needs
-        leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/devkit/config/displayPrototypeSmallDevKit.json');
+        leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/config/displayPrototypeSmallDevKit.json');
         leiaHoloScreen      = new LeiaHoloScreen(leiaDisplayInfo);
         leiaRenderer        = new LeiaRenderer(leiaHoloScreen);
 
@@ -163,8 +163,8 @@ To correctly display our rendered content on our device we must use CSS. Our con
 
 #### Includes ####
 ```
-<script src="https://www.leiainc.com/devkit/examples/js/three.js"></script>
-<script src="https://www.leiainc.com/devkit/build/LeiaCore.js"></script>
+<script src="https://www.leiainc.com/examples/js/three.js"></script>
+<script src="https://www.leiainc.com/build/LeiaCore.js"></script>
 ```
 To create our 3D content we will be using three.js so it will need to be included in our project as well as LeiaCore.js.
 
@@ -196,7 +196,7 @@ The [scene](http://threejs.org/docs/#Reference/Scenes/Scene) object is where we 
 #### The init Function ####
 ```
 function init() {
-    leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/devkit/config/displayPrototypeSmallDevKit.json');
+    leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/config/displayPrototypeSmallDevKit.json');
     leiaHoloScreen      = new LeiaHoloScreen(leiaDisplayInfo);
     leiaRenderer        = new LeiaRenderer(leiaHoloScreen);
 
@@ -305,8 +305,8 @@ The [complete HTML file](https://github.com/LeiaInc/LeiaSingleShape/blob/master/
         -webkit-transform : rotate(0deg);
     }
     </style>
-    <script src="https://www.leiainc.com/devkit/examples/js/three.js"></script>
-    <script src="https://www.leiainc.com/devkit/build/LeiaCore.js"></script>
+    <script src="https://www.leiainc.com/examples/js/three.js"></script>
+    <script src="https://www.leiainc.com/build/LeiaCore.js"></script>
 </head>
 <body></body>
 <script>
@@ -326,7 +326,7 @@ The [complete HTML file](https://github.com/LeiaInc/LeiaSingleShape/blob/master/
 
     function init() {
         // Initialize everything that LEIA needs
-        leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/devkit/config/displayPrototypeSmallDevKit.json');
+        leiaDisplayInfo     = new LeiaDisplayInfo('https://www.leiainc.com/config/displayPrototypeSmallDevKit.json');
         leiaHoloScreen      = new LeiaHoloScreen(leiaDisplayInfo);
         leiaRenderer        = new LeiaRenderer(leiaHoloScreen);
 
